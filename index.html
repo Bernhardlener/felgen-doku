@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Felgen-Doku</title>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--text:#1c1e21;--muted:#6b7280;--accent:#e11d48;--line:#e5e7eb;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#101215;--card:#1a1d22;--text:#eceef1;--muted:#9aa1ad;--accent:#fb7185;--line:#2a2e36}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:26px;margin:0 0 14px}h2{font-size:17px;margin:22px 0 8px}
+input,textarea,select{width:100%;padding:12px;font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);margin-bottom:8px}
+button{font:inherit;cursor:pointer}
+.btn{padding:12px 16px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-weight:600}
+.ghost{background:none;border:0;color:var(--muted);padding:6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.row{display:flex;gap:10px;align-items:center}
+.grow{flex:1;min-width:0}
+.muted{color:var(--muted);font-size:14px}
+.sw{width:38px;height:38px;border-radius:8px;border:1px solid var(--line);flex:none}
+.tag{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--line);color:var(--muted)}
+.done span{text-decoration:line-through;color:var(--muted)}
+.chk{width:22px;height:22px;margin:0;accent-color:var(--accent)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+code{font-weight:600}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+var KEY="felgen-doku-v1",db=[],view="list",cur=null,q="";
+try{db=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){db=[]}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function uid(){return Date.now()+Math.floor(Math.random()*1000)}
+function proj(){return db.find(function(p){return p.id===cur})}
+function status(s){return{neu:"Neu",arbeit:"In Arbeit",fertig:"Fertig"}[s]||s}
+function listView(){
+  var ql=q.toLowerCase();
+  var items=db.filter(function(p){
+    var hay=[p.title,p.customer,p.rim].concat(p.colors.map(function(c){return c.name+" "+c.code})).join(" ").toLowerCase();
+    return hay.indexOf(ql)>-1});
+  var h='<h1>Felgen-Doku</h1><div class="row"><input id="q" class="grow" placeholder="Suchen (Kunde, Felge, Farbcode) …" value="'+esc(q)+'"><button class="btn" id="new" style="margin-bottom:8px">+ Projekt</button></div>';
+  if(!items.length)h+='<p class="muted">Noch keine Projekte. Tippe auf „+ Projekt“.</p>';
+  items.forEach(function(p){
+    var d=p.steps.filter(function(s){return s.done}).length;
+    h+='<div class="card" data-open="'+p.id+'"><div class="row"><div class="grow"><b>'+esc(p.title)+'</b><div class="muted">'+esc(p.customer)+(p.rim?" · "+esc(p.rim):"")+'</div></div><span class="tag">'+status(p.status)+'</span></div>'
+    +'<div class="row" style="margin-top:8px">'+p.colors.slice(0,6).map(function(c){return '<div class="sw" style="background:'+esc(c.hex)+';width:22px;height:22px"></div>'}).join("")
+    +'<span class="muted grow" style="text-align:right">'+d+"/"+p.steps.length+' Schritte</span></div></div>';
+  });
+  return h;
+}
+function detailView(){
+  var p=proj();if(!p)return listView();
+  var h='<div class="top"><button class="ghost" id="back">‹ Zurück</button><button class="ghost" id="delp">Projekt löschen</button></div>'
+  +'<h1>'+esc(p.title)+'</h1>'
+  +'<div class="two"><input id="f-customer" placeholder="Kunde / Fahrzeug" value="'+esc(p.customer)+'"><input id="f-rim" placeholder="Felge (z. B. 18 Zoll)" value="'+esc(p.rim)+'"></div>'
+  +'<select id="f-status">'+["neu","arbeit","fertig"].map(function(s){return '<option value="'+s+'"'+(p.status===s?" selected":"")+'>'+status(s)+'</option>'}).join("")+'</select>'
+  +'<textarea id="f-notes" rows="2" placeholder="Notizen zum Schaden …">'+esc(p.notes)+'</textarea>'
+  +'<h2>Farbcodes</h2>';
+  p.colors.forEach(function(c){
+    h+='<div class="card row"><div class="sw" style="background:'+esc(c.hex)+'"></div><div class="grow"><b>'+esc(c.name)+'</b> <code>'+esc(c.code)+'</code><div class="muted">'+esc(c.notes)+'</div></div><button class="ghost" data-dc="'+c.id+'">✕</button></div>';
+  });
+  h+='<div class="card"><div class="two"><input id="c-name" placeholder="Bezeichnung (z. B. Silber)"><input id="c-code" placeholder="Farbcode / Mischung"></div>'
+  +'<div class="row"><input type="color" id="c-hex" value="#9ca3af" style="width:60px;padding:2px;height:44px"><input id="c-notes" class="grow" placeholder="Hinweis (Hersteller, Mischverhältnis …)"></div>'
+  +'<button class="btn" id="addc">Farbe speichern</button></div>'
+  +'<h2>Arbeitsschritte</h2>';
+  p.steps.forEach(function(s){
+    h+='<div class="card row'+(s.done?" done":"")+'"><input type="checkbox" class="chk" data-ds="'+s.id+'"'+(s.done?" checked":"")+'><span class="grow">'+esc(s.text)+'<div class="muted">'+esc(s.date)+'</div></span><button class="ghost" data-xs="'+s.id+'">✕</button></div>';
+  });
+  h+='<div class="row"><input id="s-text" class="grow" placeholder="Neuer Arbeitsschritt …"><button class="btn" id="adds" style="margin-bottom:8px">+</button></div>';
+  return h;
+}
+function render(){document.getElementById("app").innerHTML=view==="list"?listView():detailView()}
+document.addEventListener("click",function(e){
+  var t=e.target,el;
+  if(t.id==="new"){var n=prompt("Projektname (z. B. BMW 18 Zoll Bordsteinschaden)");if(!n)return;
+    var p={id:uid(),title:n,customer:"",rim:"",status:"neu",notes:"",colors:[],steps:[]};db.unshift(p);save();cur=p.id;view="detail";render();return}
+  if(t.id==="back"){view="list";render();return}
+  if(t.id==="delp"){if(confirm("Projekt wirklich löschen?")){db=db.filter(function(p){return p.id!==cur});save();view="list";render()}return}
+  if(el=t.closest("[data-open]")){cur=+el.dataset.open;view="detail";render();return}
+  var p=proj();if(!p)return;
+  if(t.id==="addc"){var nm=document.getElementById("c-name").value.trim(),cd=document.getElementById("c-code").value.trim();if(!nm&&!cd)return;
+    p.colors.push({id:uid(),name:nm,code:cd,hex:document.getElementById("c-hex").value,notes:document.getElementById("c-notes").value});save();render();return}
+  if(t.dataset.dc){p.colors=p.colors.filter(function(c){return c.id!==+t.dataset.dc});save();render();return}
+  if(t.id==="adds"){var s=document.getElementById("s-text");if(!s.value.trim())return;
+    p.steps.push({id:uid(),text:s.value.trim(),done:false,date:new Date().toLocaleDateString("de-AT")});save();render();return}
+  if(t.dataset.xs){p.steps=p.steps.filter(function(s){return s.id!==+t.dataset.xs});save();render();return}
+  if(t.dataset.ds){var st=p.steps.find(function(s){return s.id===+t.dataset.ds});st.done=t.checked;save();render()}
+});
+document.addEventListener("input",function(e){
+  var t=e.target;
+  if(t.id==="q"){q=t.value;var pos=t.selectionStart;render();var n=document.getElementById("q");n.focus();n.setSelectionRange(pos,pos);return}
+  var p=proj();if(!p)return;
+  var m={"f-customer":"customer","f-rim":"rim","f-status":"status","f-notes":"notes"}[t.id];
+  if(m){p[m]=t.value;save()}
+});
+render();
+</script>
+</body>
+</html>
