@@ -6,100 +6,177 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Felgen-Doku</title>
 <style>
-:root{--bg:#f4f5f7;--card:#fff;--text:#1c1e21;--muted:#6b7280;--accent:#e11d48;--line:#e5e7eb;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root{--bg:#101215;--card:#1a1d22;--text:#eceef1;--muted:#9aa1ad;--accent:#fb7185;--line:#2a2e36}}
+:root{--bg:#e9ebec;--sf:#fff;--ink:#14181b;--mu:#5b656c;--ac:#0e4a5a;--ai:#fff;--ln:#d5d9dc;--mk:#f2c14e;--dg:#b3261e;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#101315;--sf:#1a1f22;--ink:#eef1f2;--mu:#9aa5ab;--ac:#5cc2d8;--ai:#06222a;--ln:#2b3236;--dg:#ff8a80}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-main{max-width:640px;margin:0 auto;padding:20px 16px 60px}
-h1{font-size:26px;margin:0 0 14px}h2{font-size:17px;margin:22px 0 8px}
-input,textarea,select{width:100%;padding:12px;font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);margin-bottom:8px}
-button{font:inherit;cursor:pointer}
-.btn{padding:12px 16px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-weight:600}
-.ghost{background:none;border:0;color:var(--muted);padding:6px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
-.row{display:flex;gap:10px;align-items:center}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.4}
+main{max-width:620px;margin:0 auto;padding:16px 16px 120px}
+h1{font-size:32px;font-weight:800;letter-spacing:-.025em;margin:6px 0 4px;line-height:1.1}
+.sub{color:var(--mu);margin:0 0 18px}
+button,input,label.btn{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--mk);outline-offset:2px}
+.crumb{background:none;border:0;color:var(--ac);font-weight:600;padding:10px 0;min-height:44px}
+input[type=text],input[type=search]{width:100%;min-height:52px;padding:0 14px;font-size:17px;border:2px solid var(--ln);border-radius:10px;background:var(--sf)}
+input:focus{border-color:var(--ac);outline:0}
+.list{margin:14px 0 0;display:grid;gap:10px}
+.row{display:flex;align-items:center;gap:14px;width:100%;min-height:72px;padding:10px 14px;background:var(--sf);border:1px solid var(--ln);border-radius:10px;text-align:left}
+.row:active{background:var(--ln)}
+.badge{width:48px;height:48px;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:20px;color:#fff;flex:none}
 .grow{flex:1;min-width:0}
-.muted{color:var(--muted);font-size:14px}
-.sw{width:38px;height:38px;border-radius:8px;border:1px solid var(--line);flex:none}
-.tag{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--line);color:var(--muted)}
-.done span{text-decoration:line-through;color:var(--muted)}
-.chk{width:22px;height:22px;margin:0;accent-color:var(--accent)}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-code{font-weight:600}
+.t{font-weight:700;font-size:17px}
+.m{color:var(--mu);font-size:14px}
+.chev{color:var(--mu);font-size:22px}
+.tabs{display:flex;border-bottom:2px solid var(--ln);margin:14px 0 6px}
+.tab{flex:1;min-height:48px;background:none;border:0;border-bottom:4px solid transparent;margin-bottom:-2px;font-weight:600;color:var(--mu)}
+.tab.on{color:var(--ink);border-bottom-color:var(--mk)}
+.chip{display:flex;background:var(--sf);border:1px solid var(--ln);border-radius:4px 14px 4px 14px;overflow:hidden;min-height:92px}
+.sw{width:84px;flex:none;border-right:1px solid var(--ln)}
+.cb{flex:1;min-width:0;padding:10px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.code{background:none;border:0;padding:0;font:800 24px/1.2 ui-monospace,"SF Mono",Consolas,monospace;letter-spacing:.02em;text-align:left;min-height:36px}
+.x{background:none;border:0;color:var(--mu);font-size:22px;min-width:48px;min-height:48px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.ph{aspect-ratio:1;border:0;padding:0;border-radius:6px;background:var(--ln) center/cover no-repeat}
+.step{display:flex;align-items:center;gap:6px;background:var(--sf);border:1px solid var(--ln);border-radius:10px;min-height:64px;padding:0 4px 0 14px;margin-top:8px}
+.step input{width:26px;height:26px;accent-color:var(--ac);flex:none}
+.step.done .grow{text-decoration:line-through;color:var(--mu)}
+.empty{padding:28px 4px;color:var(--mu)}
+.empty b{display:block;color:var(--ink);font-size:19px;margin-bottom:6px}
+.sug{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.sug button{min-height:44px;padding:0 16px;border-radius:999px;border:2px solid var(--ln);background:var(--sf);font-weight:600}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--ln)}
+.btn{display:flex;align-items:center;justify-content:center;max-width:588px;margin:0 auto;width:100%;min-height:56px;border:0;border-radius:12px;background:var(--ac);color:var(--ai);font-weight:700;font-size:17px;cursor:pointer}
+.link{background:none;border:0;color:var(--dg);padding:12px 0;min-height:44px;margin-top:20px}
+dialog{border:0;border-radius:14px;padding:20px;width:min(92vw,420px);background:var(--sf);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog h3{margin:0 0 14px;font-size:20px}
+dialog label{display:block;font-weight:600;font-size:14px;margin-bottom:12px}
+dialog label input{margin-top:6px;font-weight:400}
+dialog input[type=color]{width:100%;padding:3px;height:52px;margin-top:6px}
+.acts{display:flex;gap:10px;margin-top:6px}
+.acts button{flex:1;min-height:52px;border-radius:10px;border:2px solid var(--ln);background:none;font-weight:700}
+.acts .pri{background:var(--ac);border-color:var(--ac);color:var(--ai)}
+.acts .del{color:var(--dg)}
+#lb img{width:100%;border-radius:8px;display:block;margin-bottom:12px}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
 </style>
 </head>
 <body>
 <main id="app"></main>
+<div class="bar" id="bar"></div>
+<dialog id="dlg"></dialog>
+<dialog id="lb"></dialog>
+<div class="toast" id="toast" role="status"></div>
 <script>
-var KEY="felgen-doku-v1",db=[],view="list",cur=null,q="";
-try{db=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){db=[]}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
+var DB={m:[]},V="home",S={tab:"farben"},Q="";
+var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function uid(){return Date.now()+Math.floor(Math.random()*1000)}
-function proj(){return db.find(function(p){return p.id===cur})}
-function status(s){return{neu:"Neu",arbeit:"In Arbeit",fertig:"Fertig"}[s]||s}
-function listView(){
-  var ql=q.toLowerCase();
-  var items=db.filter(function(p){
-    var hay=[p.title,p.customer,p.rim].concat(p.colors.map(function(c){return c.name+" "+c.code})).join(" ").toLowerCase();
-    return hay.indexOf(ql)>-1});
-  var h='<h1>Felgen-Doku</h1><div class="row"><input id="q" class="grow" placeholder="Suchen (Kunde, Felge, Farbcode) …" value="'+esc(q)+'"><button class="btn" id="new" style="margin-bottom:8px">+ Projekt</button></div>';
-  if(!items.length)h+='<p class="muted">Noch keine Projekte. Tippe auf „+ Projekt“.</p>';
-  items.forEach(function(p){
-    var d=p.steps.filter(function(s){return s.done}).length;
-    h+='<div class="card" data-open="'+p.id+'"><div class="row"><div class="grow"><b>'+esc(p.title)+'</b><div class="muted">'+esc(p.customer)+(p.rim?" · "+esc(p.rim):"")+'</div></div><span class="tag">'+status(p.status)+'</span></div>'
-    +'<div class="row" style="margin-top:8px">'+p.colors.slice(0,6).map(function(c){return '<div class="sw" style="background:'+esc(c.hex)+';width:22px;height:22px"></div>'}).join("")
-    +'<span class="muted grow" style="text-align:right">'+d+"/"+p.steps.length+' Schritte</span></div></div>';
-  });
+function uid(){return Date.now()*10+Math.floor(Math.random()*10)}
+function idb(){return new Promise(function(a,b){var r=indexedDB.open("felgen",1);r.onupgradeneeded=function(){r.result.createObjectStore("kv")};r.onsuccess=function(){a(r.result)};r.onerror=b})}
+function load(){return idb().then(function(d){return new Promise(function(a){var g=d.transaction("kv").objectStore("kv").get("db");g.onsuccess=function(){a(g.result)};g.onerror=function(){a()}})}).then(function(v){if(v)DB=v}).catch(function(){})}
+function save(){idb().then(function(d){d.transaction("kv","readwrite").objectStore("kv").put(DB,"db")}).catch(function(){})}
+function man(){return DB.m.find(function(x){return x.id===S.mid})}
+function mod(){var m=man();return m&&m.models.find(function(x){return x.id===S.oid})}
+function hue(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))%360;return h}
+function badge(n){return '<div class="badge" style="background:hsl('+hue(n)+' 38% 38%)">'+esc((n[0]||"?").toUpperCase())+'</div>'}
+function plural(n,a,b){return n+" "+(n===1?a:b)}
+function stats(m){var c=0,p=0;m.models.forEach(function(o){c+=o.colors.length;p+=o.photos.length});return plural(m.models.length,"Modell","Modelle")+" · "+plural(c,"Farbe","Farben")+" · "+plural(p,"Foto","Fotos")}
+function go(h){if(location.hash.slice(1)===h){route();return}location.hash=h}
+function route(){
+  var p=location.hash.slice(1).split("-");
+  if(p[0]==="hersteller"&&p[1]){V="man";S.mid=+p[1]}
+  else if(p[0]==="modell"&&p[1]&&p[2]){V="model";S.mid=+p[1];S.oid=+p[2];if(p[3])S.tab=p[3]}
+  else V="home";
+  if(V==="man"&&!man())V="home";
+  if(V==="model"&&!mod())V="home";
+  render();window.scrollTo(0,0);
+}
+function row(h,b,t,m){return '<button class="row" data-a="go" data-h="'+h+'">'+b+'<span class="grow"><div class="t">'+esc(t)+'</div><div class="m">'+esc(m)+'</div></span><span class="chev">›</span></button>'}
+function home(){
+  var h='<h1>Felgen-Doku</h1><p class="sub">Farbcodes, Fotos und Arbeitsschritte nach Hersteller und Modell.</p>';
+  if(!DB.m.length){
+    return h+'<div class="empty"><b>Noch kein Hersteller</b>Lege den ersten an, zum Beispiel:<div class="sug">'+["BMW","Audi","Mercedes","VW","Porsche","Opel"].map(function(n){return '<button data-a="seed" data-n="'+n+'">'+n+'</button>'}).join("")+'</div></div>';
+  }
+  h+='<input type="search" id="q" placeholder="Suchen: Hersteller, Modell oder Farbcode" value="'+esc(Q)+'" aria-label="Suchen">';
+  var ql=Q.toLowerCase().trim(),out="";
+  if(ql){
+    DB.m.forEach(function(m){m.models.forEach(function(o){
+      var hit=o.colors.filter(function(c){return (c.code+" "+c.name).toLowerCase().indexOf(ql)>-1});
+      if((m.name+" "+o.name).toLowerCase().indexOf(ql)>-1||hit.length)
+        out+=row("modell-"+m.id+"-"+o.id,badge(m.name),m.name+" "+o.name,hit.length?hit.map(function(c){return c.code}).join(", "):stats({models:[o]}));
+    })});
+    return h+'<div class="list">'+(out||'<div class="empty"><b>Nichts gefunden</b>Prüfe die Schreibweise oder suche nach einem Teil des Codes.</div>')+'</div>';
+  }
+  return h+'<div class="list">'+DB.m.map(function(m){return row("hersteller-"+m.id,badge(m.name),m.name,stats(m))}).join("")+'</div>';
+}
+function manView(){
+  var m=man(),h='<button class="crumb" data-a="go" data-h="">‹ Alle Hersteller</button><h1>'+esc(m.name)+'</h1><p class="sub">'+stats(m)+'</p>';
+  if(!m.models.length)h+='<div class="empty"><b>Noch kein Modell</b>Lege ein Modell an, zum Beispiel „3er F30“ oder „A4 B9“.</div>';
+  else h+='<div class="list">'+m.models.map(function(o){return row("modell-"+m.id+"-"+o.id,badge(o.name),o.name,plural(o.colors.length,"Farbe","Farben")+" · "+plural(o.photos.length,"Foto","Fotos"))}).join("")+'</div>';
+  return h+'<button class="link" data-a="delman">Hersteller löschen</button>';
+}
+function modelView(){
+  var m=man(),o=mod(),t=S.tab;
+  var h='<button class="crumb" data-a="go" data-h="hersteller-'+m.id+'">‹ '+esc(m.name)+'</button><h1>'+esc(o.name)+'</h1>';
+  h+='<div class="tabs" role="tablist">'+[["farben","Farben",o.colors.length],["fotos","Fotos",o.photos.length],["schritte","Schritte",o.steps.length]].map(function(x){return '<button class="tab'+(t===x[0]?" on":"")+'" role="tab" data-a="tab" data-t="'+x[0]+'">'+x[1]+" ("+x[2]+")</button>"}).join("")+'</div>';
+  if(t==="farben"){
+    if(!o.colors.length)h+='<div class="empty"><b>Noch keine Farbe</b>Speichere den Lackcode und das Mischverhältnis für dieses Modell.</div>';
+    h+='<div class="list">'+o.colors.map(function(c){return '<div class="chip"><div class="sw" style="background:'+esc(c.hex)+'"></div><div class="cb"><button class="code" data-a="copy" data-v="'+esc(c.code)+'" aria-label="Code kopieren">'+esc(c.code||"–")+'</button><div class="t">'+esc(c.name)+'</div><div class="m">'+esc(c.notes)+'</div></div><button class="x" data-a="delcol" data-i="'+c.id+'" aria-label="Farbe löschen">✕</button></div>'}).join("")+'</div>';
+  }
+  if(t==="fotos"){
+    if(!o.photos.length)h+='<div class="empty"><b>Noch kein Foto</b>Fotografiere Schaden, Zwischenstände und das Ergebnis.</div>';
+    h+='<div class="grid">'+o.photos.map(function(p){return '<button class="ph" data-a="photo" data-i="'+p.id+'" style="background-image:url('+p.src+')" aria-label="Foto öffnen"></button>'}).join("")+'</div>';
+  }
+  if(t==="schritte"){
+    if(!o.steps.length)h+='<div class="empty"><b>Noch kein Arbeitsschritt</b>Halte fest, was du in welcher Reihenfolge gemacht hast.</div>';
+    h+=o.steps.map(function(s){return '<div class="step'+(s.done?" done":"")+'"><input type="checkbox" data-a="chk" data-i="'+s.id+'"'+(s.done?" checked":"")+' aria-label="Erledigt"><div class="grow">'+esc(s.text)+'<div class="m">'+esc(s.date)+'</div></div><button class="x" data-a="delstep" data-i="'+s.id+'" aria-label="Schritt löschen">✕</button></div>'}).join("");
+  }
   return h;
 }
-function detailView(){
-  var p=proj();if(!p)return listView();
-  var h='<div class="top"><button class="ghost" id="back">‹ Zurück</button><button class="ghost" id="delp">Projekt löschen</button></div>'
-  +'<h1>'+esc(p.title)+'</h1>'
-  +'<div class="two"><input id="f-customer" placeholder="Kunde / Fahrzeug" value="'+esc(p.customer)+'"><input id="f-rim" placeholder="Felge (z. B. 18 Zoll)" value="'+esc(p.rim)+'"></div>'
-  +'<select id="f-status">'+["neu","arbeit","fertig"].map(function(s){return '<option value="'+s+'"'+(p.status===s?" selected":"")+'>'+status(s)+'</option>'}).join("")+'</select>'
-  +'<textarea id="f-notes" rows="2" placeholder="Notizen zum Schaden …">'+esc(p.notes)+'</textarea>'
-  +'<h2>Farbcodes</h2>';
-  p.colors.forEach(function(c){
-    h+='<div class="card row"><div class="sw" style="background:'+esc(c.hex)+'"></div><div class="grow"><b>'+esc(c.name)+'</b> <code>'+esc(c.code)+'</code><div class="muted">'+esc(c.notes)+'</div></div><button class="ghost" data-dc="'+c.id+'">✕</button></div>';
-  });
-  h+='<div class="card"><div class="two"><input id="c-name" placeholder="Bezeichnung (z. B. Silber)"><input id="c-code" placeholder="Farbcode / Mischung"></div>'
-  +'<div class="row"><input type="color" id="c-hex" value="#9ca3af" style="width:60px;padding:2px;height:44px"><input id="c-notes" class="grow" placeholder="Hinweis (Hersteller, Mischverhältnis …)"></div>'
-  +'<button class="btn" id="addc">Farbe speichern</button></div>'
-  +'<h2>Arbeitsschritte</h2>';
-  p.steps.forEach(function(s){
-    h+='<div class="card row'+(s.done?" done":"")+'"><input type="checkbox" class="chk" data-ds="'+s.id+'"'+(s.done?" checked":"")+'><span class="grow">'+esc(s.text)+'<div class="muted">'+esc(s.date)+'</div></span><button class="ghost" data-xs="'+s.id+'">✕</button></div>';
-  });
-  h+='<div class="row"><input id="s-text" class="grow" placeholder="Neuer Arbeitsschritt …"><button class="btn" id="adds" style="margin-bottom:8px">+</button></div>';
-  return h;
+function render(){
+  $("app").innerHTML=V==="home"?home():V==="man"?manView():modelView();
+  var b="";
+  if(V==="home")b='<button class="btn" data-a="addman">Hersteller hinzufügen</button>';
+  if(V==="man")b='<button class="btn" data-a="addmod">Modell hinzufügen</button>';
+  if(V==="model")b=S.tab==="farben"?'<button class="btn" data-a="addcol">Farbe hinzufügen</button>':S.tab==="fotos"?'<label class="btn"><input type="file" id="file" accept="image/*" multiple hidden>Foto hinzufügen</label>':'<button class="btn" data-a="addstep">Schritt hinzufügen</button>';
+  $("bar").innerHTML=b;
 }
-function render(){document.getElementById("app").innerHTML=view==="list"?listView():detailView()}
+function ask(title,fields,ok){
+  var d=$("dlg");
+  d.innerHTML='<form method="dialog"><h3>'+title+'</h3>'+fields.map(function(f){return '<label>'+f.l+'<input name="'+f.n+'" type="'+(f.t||"text")+'"'+(f.r?" required":"")+' placeholder="'+(f.p||"")+'" value="'+(f.v||"")+'" autocomplete="off"></label>'}).join("")+'<div class="acts"><button value="x" formnovalidate>Abbrechen</button><button class="pri" value="ok">Speichern</button></div></form>';
+  var fm=d.querySelector("form");
+  fm.onsubmit=function(e){if(e.submitter&&e.submitter.value==="ok"){var v={};fields.forEach(function(f){v[f.n]=fm.elements[f.n].value.trim()});ok(v)}};
+  d.showModal();
+}
+function toast(t){var e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(function(){e.classList.remove("on")},1600)}
+function shrink(f){return new Promise(function(a){var i=new Image(),u=URL.createObjectURL(f);i.onload=function(){var s=Math.min(1,1280/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=Math.round(i.width*s);c.height=Math.round(i.height*s);c.getContext("2d").drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);a(c.toDataURL("image/jpeg",.72))};i.onerror=function(){a(null)};i.src=u})}
+function addMan(n){DB.m.push({id:uid(),name:n,models:[]});DB.m.sort(function(a,b){return a.name.localeCompare(b.name,"de")});save()}
 document.addEventListener("click",function(e){
-  var t=e.target,el;
-  if(t.id==="new"){var n=prompt("Projektname (z. B. BMW 18 Zoll Bordsteinschaden)");if(!n)return;
-    var p={id:uid(),title:n,customer:"",rim:"",status:"neu",notes:"",colors:[],steps:[]};db.unshift(p);save();cur=p.id;view="detail";render();return}
-  if(t.id==="back"){view="list";render();return}
-  if(t.id==="delp"){if(confirm("Projekt wirklich löschen?")){db=db.filter(function(p){return p.id!==cur});save();view="list";render()}return}
-  if(el=t.closest("[data-open]")){cur=+el.dataset.open;view="detail";render();return}
-  var p=proj();if(!p)return;
-  if(t.id==="addc"){var nm=document.getElementById("c-name").value.trim(),cd=document.getElementById("c-code").value.trim();if(!nm&&!cd)return;
-    p.colors.push({id:uid(),name:nm,code:cd,hex:document.getElementById("c-hex").value,notes:document.getElementById("c-notes").value});save();render();return}
-  if(t.dataset.dc){p.colors=p.colors.filter(function(c){return c.id!==+t.dataset.dc});save();render();return}
-  if(t.id==="adds"){var s=document.getElementById("s-text");if(!s.value.trim())return;
-    p.steps.push({id:uid(),text:s.value.trim(),done:false,date:new Date().toLocaleDateString("de-AT")});save();render();return}
-  if(t.dataset.xs){p.steps=p.steps.filter(function(s){return s.id!==+t.dataset.xs});save();render();return}
-  if(t.dataset.ds){var st=p.steps.find(function(s){return s.id===+t.dataset.ds});st.done=t.checked;save();render()}
+  var t=e.target.closest("[data-a]");if(!t)return;
+  var a=t.dataset.a,m=V!=="home"?man():null,o=V==="model"?mod():null;
+  if(a==="go"){go(t.dataset.h);return}
+  if(a==="seed"){addMan(t.dataset.n);render();return}
+  if(a==="addman")return ask("Neuer Hersteller",[{n:"n",l:"Name",p:"z. B. BMW",r:1}],function(v){addMan(v.n);render()});
+  if(a==="delman"){if(confirm("„"+m.name+"“ mit allen Modellen, Farben und Fotos löschen?")){DB.m=DB.m.filter(function(x){return x!==m});save();go("")}return}
+  if(a==="addmod")return ask("Neues Modell",[{n:"n",l:"Modell",p:"z. B. 3er F30",r:1}],function(v){var x={id:uid(),name:v.n,colors:[],photos:[],steps:[]};m.models.push(x);save();go("modell-"+m.id+"-"+x.id+"-farben")});
+  if(a==="tab"){S.tab=t.dataset.t;history.replaceState(null,"","#modell-"+m.id+"-"+o.id+"-"+S.tab);render();return}
+  if(a==="addcol")return ask("Neue Farbe",[{n:"code",l:"Farbcode",p:"z. B. A96",r:1},{n:"name",l:"Bezeichnung",p:"z. B. Titansilber"},{n:"hex",l:"Farbton zur Ansicht",t:"color",v:"#9ca3af"},{n:"notes",l:"Hinweis",p:"Hersteller, Mischverhältnis …"}],function(v){o.colors.push({id:uid(),code:v.code,name:v.name,hex:v.hex,notes:v.notes});save();render()});
+  if(a==="delcol"){if(confirm("Farbe löschen?")){o.colors=o.colors.filter(function(c){return c.id!==+t.dataset.i});save();render()}return}
+  if(a==="copy"){try{navigator.clipboard.writeText(t.dataset.v).then(function(){toast("Code kopiert")},function(){toast("Kopieren nicht möglich")})}catch(x){toast("Kopieren nicht möglich")}return}
+  if(a==="photo"){var p=o.photos.find(function(x){return x.id===+t.dataset.i});var l=$("lb");l.innerHTML='<img src="'+p.src+'" alt="Foto"><div class="acts"><button class="del" id="lbdel">Löschen</button><button class="pri" id="lbx">Schließen</button></div>';$("lbx").onclick=function(){l.close()};$("lbdel").onclick=function(){if(confirm("Foto löschen?")){o.photos=o.photos.filter(function(x){return x!==p});save();l.close();render()}};l.showModal();return}
+  if(a==="addstep")return ask("Neuer Arbeitsschritt",[{n:"t",l:"Was wurde gemacht?",p:"z. B. Schleifen mit 320er Körnung",r:1}],function(v){o.steps.push({id:uid(),text:v.t,done:false,date:new Date().toLocaleDateString("de-AT")});save();render()});
+  if(a==="delstep"){if(confirm("Schritt löschen?")){o.steps=o.steps.filter(function(s){return s.id!==+t.dataset.i});save();render()}return}
 });
-document.addEventListener("input",function(e){
-  var t=e.target;
-  if(t.id==="q"){q=t.value;var pos=t.selectionStart;render();var n=document.getElementById("q");n.focus();n.setSelectionRange(pos,pos);return}
-  var p=proj();if(!p)return;
-  var m={"f-customer":"customer","f-rim":"rim","f-status":"status","f-notes":"notes"}[t.id];
-  if(m){p[m]=t.value;save()}
+document.addEventListener("change",function(e){
+  if(e.target.dataset.a==="chk"){var s=mod().steps.find(function(x){return x.id===+e.target.dataset.i});s.done=e.target.checked;save();render();return}
+  if(e.target.id==="file"){var o=mod(),fs=Array.prototype.slice.call(e.target.files);toast("Foto wird gespeichert …");
+    Promise.all(fs.map(shrink)).then(function(r){r.forEach(function(s){if(s)o.photos.push({id:uid(),src:s})});save();render()});}
 });
-render();
+document.addEventListener("input",function(e){if(e.target.id==="q"){Q=e.target.value;var p=e.target.selectionStart;render();var n=$("q");n.focus();n.setSelectionRange(p,p)}});
+window.addEventListener("hashchange",route);
+load().then(route);
 </script>
 </body>
 </html>
