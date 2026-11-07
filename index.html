@@ -18,7 +18,7 @@ button,input,label.btn{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:3px solid var(--mk);outline-offset:2px}
 .crumb{background:none;border:0;color:var(--ac);font-weight:600;padding:10px 0;min-height:44px}
-input[type=text],input[type=search]{width:100%;min-height:52px;padding:0 14px;font-size:17px;border:2px solid var(--ln);border-radius:10px;background:var(--sf)}
+input[type=text],input[type=search],input[type=email],input[type=password]{width:100%;min-height:52px;padding:0 14px;font-size:17px;border:2px solid var(--ln);border-radius:10px;background:var(--sf);margin-bottom:10px}
 input:focus{border-color:var(--ac);outline:0}
 .list{margin:14px 0 0;display:grid;gap:10px}
 .row{display:flex;align-items:center;gap:14px;width:100%;min-height:72px;padding:10px 14px;background:var(--sf);border:1px solid var(--ln);border-radius:10px;text-align:left}
@@ -39,15 +39,17 @@ input:focus{border-color:var(--ac);outline:0}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
 .ph{aspect-ratio:1;border:0;padding:0;border-radius:6px;background:var(--ln) center/cover no-repeat}
 .step{display:flex;align-items:center;gap:6px;background:var(--sf);border:1px solid var(--ln);border-radius:10px;min-height:64px;padding:0 4px 0 14px;margin-top:8px}
-.step input{width:26px;height:26px;accent-color:var(--ac);flex:none}
+.step input{width:26px;height:26px;accent-color:var(--ac);flex:none;margin:0}
 .step.done .grow{text-decoration:line-through;color:var(--mu)}
 .empty{padding:28px 4px;color:var(--mu)}
 .empty b{display:block;color:var(--ink);font-size:19px;margin-bottom:6px}
 .sug{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .sug button{min-height:44px;padding:0 16px;border-radius:999px;border:2px solid var(--ln);background:var(--sf);font-weight:600}
 .bar{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--ln)}
+.bar:empty{display:none}
 .btn{display:flex;align-items:center;justify-content:center;max-width:588px;margin:0 auto;width:100%;min-height:56px;border:0;border-radius:12px;background:var(--ac);color:var(--ai);font-weight:700;font-size:17px;cursor:pointer}
-.link{background:none;border:0;color:var(--dg);padding:12px 0;min-height:44px;margin-top:20px}
+.link{background:none;border:0;color:var(--dg);padding:12px 0;min-height:44px;margin-top:20px;display:block}
+.link.mu{color:var(--mu)}
 dialog{border:0;border-radius:14px;padding:20px;width:min(92vw,420px);background:var(--sf);color:var(--ink)}
 dialog::backdrop{background:rgba(0,0,0,.55)}
 dialog h3{margin:0 0 14px;font-size:20px}
@@ -61,7 +63,9 @@ dialog input[type=color]{width:100%;padding:3px;height:52px;margin-top:6px}
 #lb img{width:100%;border-radius:8px;display:block;margin-bottom:12px}
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.on{opacity:1}
+.err{color:var(--dg);font-weight:600}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 </head>
 <body>
 <main id="app"></main>
@@ -70,13 +74,31 @@ dialog input[type=color]{width:100%;padding:3px;height:52px;margin-top:6px}
 <dialog id="lb"></dialog>
 <div class="toast" id="toast" role="status"></div>
 <script>
-var DB={m:[]},V="home",S={tab:"farben"},Q="";
+/* ===== HIER DEINE ZWEI WERTE AUS SUPABASE EINTRAGEN ===== */
+var SB_URL="https://blecvfrxbiagojrharhb.supabase.co";
+var SB_KEY="sb_publishable_zj3qP_TbPENxdQSp8X8xJw_h79ndRl_";
+/* ======================================================== */
+var sb=supabase.createClient(SB_URL,SB_KEY);
+var DB={m:[]},V="home",S={tab:"farben"},Q="",USER=null,URLS={};
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function uid(){return Date.now()*10+Math.floor(Math.random()*10)}
-function idb(){return new Promise(function(a,b){var r=indexedDB.open("felgen",1);r.onupgradeneeded=function(){r.result.createObjectStore("kv")};r.onsuccess=function(){a(r.result)};r.onerror=b})}
-function load(){return idb().then(function(d){return new Promise(function(a){var g=d.transaction("kv").objectStore("kv").get("db");g.onsuccess=function(){a(g.result)};g.onerror=function(){a()}})}).then(function(v){if(v)DB=v}).catch(function(){})}
-function save(){idb().then(function(d){d.transaction("kv","readwrite").objectStore("kv").put(DB,"db")}).catch(function(){})}
+function toast(t){var e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(function(){e.classList.remove("on")},2200)}
+function save(m){if(!m)return;sb.from("projects").upsert({id:m.id,data:m}).then(function(r){if(r.error)toast("Speichern fehlgeschlagen")})}
+function sortM(){DB.m.sort(function(a,b){return a.name.localeCompare(b.name,"de")})}
+async function signPhotos(){
+  var paths=[];
+  DB.m.forEach(function(m){m.models.forEach(function(o){o.photos.forEach(function(p){if(!URLS[p.path])paths.push(p.path)})})});
+  if(!paths.length)return;
+  var r=await sb.storage.from("fotos").createSignedUrls(paths,3600);
+  if(r.data)r.data.forEach(function(x){if(x.signedUrl)URLS[x.path]=x.signedUrl});
+}
+async function loadAll(){
+  var r=await sb.from("projects").select("id,data");
+  if(r.error){toast("Laden fehlgeschlagen");return}
+  DB.m=r.data.map(function(x){return x.data});sortM();
+  await signPhotos();
+}
 function man(){return DB.m.find(function(x){return x.id===S.mid})}
 function mod(){var m=man();return m&&m.models.find(function(x){return x.id===S.oid})}
 function hue(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))%360;return h}
@@ -94,10 +116,13 @@ function route(){
   render();window.scrollTo(0,0);
 }
 function row(h,b,t,m){return '<button class="row" data-a="go" data-h="'+h+'">'+b+'<span class="grow"><div class="t">'+esc(t)+'</div><div class="m">'+esc(m)+'</div></span><span class="chev">›</span></button>'}
+function loginView(){
+  return '<h1>Felgen-Doku</h1><p class="sub">Melde dich an, damit deine Daten auf iPhone und PC gleich sind.</p><form id="lf"><input type="email" id="em" placeholder="E-Mail" autocomplete="username" required><input type="password" id="pw" placeholder="Passwort" autocomplete="current-password" required><button class="btn" type="submit">Anmelden</button><p class="err" id="lerr" role="alert"></p></form>';
+}
 function home(){
   var h='<h1>Felgen-Doku</h1><p class="sub">Farbcodes, Fotos und Arbeitsschritte nach Hersteller und Modell.</p>';
   if(!DB.m.length){
-    return h+'<div class="empty"><b>Noch kein Hersteller</b>Lege den ersten an, zum Beispiel:<div class="sug">'+["BMW","Audi","Mercedes","VW","Porsche","Opel"].map(function(n){return '<button data-a="seed" data-n="'+n+'">'+n+'</button>'}).join("")+'</div></div>';
+    return h+'<div class="empty"><b>Noch kein Hersteller</b>Lege den ersten an, zum Beispiel:<div class="sug">'+["BMW","Audi","Mercedes","VW","Porsche","Opel"].map(function(n){return '<button data-a="seed" data-n="'+n+'">'+n+'</button>'}).join("")+'</div></div><button class="link mu" data-a="logout">Abmelden</button>';
   }
   h+='<input type="search" id="q" placeholder="Suchen: Hersteller, Modell oder Farbcode" value="'+esc(Q)+'" aria-label="Suchen">';
   var ql=Q.toLowerCase().trim(),out="";
@@ -109,7 +134,7 @@ function home(){
     })});
     return h+'<div class="list">'+(out||'<div class="empty"><b>Nichts gefunden</b>Prüfe die Schreibweise oder suche nach einem Teil des Codes.</div>')+'</div>';
   }
-  return h+'<div class="list">'+DB.m.map(function(m){return row("hersteller-"+m.id,badge(m.name),m.name,stats(m))}).join("")+'</div>';
+  return h+'<div class="list">'+DB.m.map(function(m){return row("hersteller-"+m.id,badge(m.name),m.name,stats(m))}).join("")+'</div><button class="link mu" data-a="logout">Abmelden</button>';
 }
 function manView(){
   var m=man(),h='<button class="crumb" data-a="go" data-h="">‹ Alle Hersteller</button><h1>'+esc(m.name)+'</h1><p class="sub">'+stats(m)+'</p>';
@@ -127,7 +152,7 @@ function modelView(){
   }
   if(t==="fotos"){
     if(!o.photos.length)h+='<div class="empty"><b>Noch kein Foto</b>Fotografiere Schaden, Zwischenstände und das Ergebnis.</div>';
-    h+='<div class="grid">'+o.photos.map(function(p){return '<button class="ph" data-a="photo" data-i="'+p.id+'" style="background-image:url('+p.src+')" aria-label="Foto öffnen"></button>'}).join("")+'</div>';
+    h+='<div class="grid">'+o.photos.map(function(p){return '<button class="ph" data-a="photo" data-i="'+p.id+'" style="background-image:url(\''+esc(URLS[p.path]||"")+'\')" aria-label="Foto öffnen"></button>'}).join("")+'</div>';
   }
   if(t==="schritte"){
     if(!o.steps.length)h+='<div class="empty"><b>Noch kein Arbeitsschritt</b>Halte fest, was du in welcher Reihenfolge gemacht hast.</div>';
@@ -136,6 +161,7 @@ function modelView(){
   return h;
 }
 function render(){
+  if(!USER){$("app").innerHTML=loginView();$("bar").innerHTML="";return}
   $("app").innerHTML=V==="home"?home():V==="man"?manView():modelView();
   var b="";
   if(V==="home")b='<button class="btn" data-a="addman">Hersteller hinzufügen</button>';
@@ -150,33 +176,60 @@ function ask(title,fields,ok){
   fm.onsubmit=function(e){if(e.submitter&&e.submitter.value==="ok"){var v={};fields.forEach(function(f){v[f.n]=fm.elements[f.n].value.trim()});ok(v)}};
   d.showModal();
 }
-function toast(t){var e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(function(){e.classList.remove("on")},1600)}
-function shrink(f){return new Promise(function(a){var i=new Image(),u=URL.createObjectURL(f);i.onload=function(){var s=Math.min(1,1280/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=Math.round(i.width*s);c.height=Math.round(i.height*s);c.getContext("2d").drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);a(c.toDataURL("image/jpeg",.72))};i.onerror=function(){a(null)};i.src=u})}
-function addMan(n){DB.m.push({id:uid(),name:n,models:[]});DB.m.sort(function(a,b){return a.name.localeCompare(b.name,"de")});save()}
+function shrink(f){return new Promise(function(a){var i=new Image(),u=URL.createObjectURL(f);i.onload=function(){var s=Math.min(1,1280/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=Math.round(i.width*s);c.height=Math.round(i.height*s);c.getContext("2d").drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(function(b){a(b)},"image/jpeg",.72)};i.onerror=function(){a(null)};i.src=u})}
+function addMan(n){var x={id:uid(),name:n,models:[]};DB.m.push(x);sortM();save(x);return x}
+function dropPhotos(paths){if(paths.length)sb.storage.from("fotos").remove(paths)}
 document.addEventListener("click",function(e){
   var t=e.target.closest("[data-a]");if(!t)return;
   var a=t.dataset.a,m=V!=="home"?man():null,o=V==="model"?mod():null;
   if(a==="go"){go(t.dataset.h);return}
+  if(a==="logout"){sb.auth.signOut().then(function(){USER=null;DB.m=[];render()});return}
   if(a==="seed"){addMan(t.dataset.n);render();return}
   if(a==="addman")return ask("Neuer Hersteller",[{n:"n",l:"Name",p:"z. B. BMW",r:1}],function(v){addMan(v.n);render()});
-  if(a==="delman"){if(confirm("„"+m.name+"“ mit allen Modellen, Farben und Fotos löschen?")){DB.m=DB.m.filter(function(x){return x!==m});save();go("")}return}
-  if(a==="addmod")return ask("Neues Modell",[{n:"n",l:"Modell",p:"z. B. 3er F30",r:1}],function(v){var x={id:uid(),name:v.n,colors:[],photos:[],steps:[]};m.models.push(x);save();go("modell-"+m.id+"-"+x.id+"-farben")});
+  if(a==="delman"){if(confirm("„"+m.name+"“ mit allen Modellen, Farben und Fotos löschen?")){var ps=[];m.models.forEach(function(x){x.photos.forEach(function(p){ps.push(p.path)})});dropPhotos(ps);sb.from("projects").delete().eq("id",m.id).then(function(r){if(r.error)toast("Löschen fehlgeschlagen")});DB.m=DB.m.filter(function(x){return x!==m});go("")}return}
+  if(a==="addmod")return ask("Neues Modell",[{n:"n",l:"Modell",p:"z. B. 3er F30",r:1}],function(v){var x={id:uid(),name:v.n,colors:[],photos:[],steps:[]};m.models.push(x);save(m);go("modell-"+m.id+"-"+x.id+"-farben")});
   if(a==="tab"){S.tab=t.dataset.t;history.replaceState(null,"","#modell-"+m.id+"-"+o.id+"-"+S.tab);render();return}
-  if(a==="addcol")return ask("Neue Farbe",[{n:"code",l:"Farbcode",p:"z. B. A96",r:1},{n:"name",l:"Bezeichnung",p:"z. B. Titansilber"},{n:"hex",l:"Farbton zur Ansicht",t:"color",v:"#9ca3af"},{n:"notes",l:"Hinweis",p:"Hersteller, Mischverhältnis …"}],function(v){o.colors.push({id:uid(),code:v.code,name:v.name,hex:v.hex,notes:v.notes});save();render()});
-  if(a==="delcol"){if(confirm("Farbe löschen?")){o.colors=o.colors.filter(function(c){return c.id!==+t.dataset.i});save();render()}return}
+  if(a==="addcol")return ask("Neue Farbe",[{n:"code",l:"Farbcode",p:"z. B. A96",r:1},{n:"name",l:"Bezeichnung",p:"z. B. Titansilber"},{n:"hex",l:"Farbton zur Ansicht",t:"color",v:"#9ca3af"},{n:"notes",l:"Hinweis",p:"Hersteller, Mischverhältnis …"}],function(v){o.colors.push({id:uid(),code:v.code,name:v.name,hex:v.hex,notes:v.notes});save(m);render()});
+  if(a==="delcol"){if(confirm("Farbe löschen?")){o.colors=o.colors.filter(function(c){return c.id!==+t.dataset.i});save(m);render()}return}
   if(a==="copy"){try{navigator.clipboard.writeText(t.dataset.v).then(function(){toast("Code kopiert")},function(){toast("Kopieren nicht möglich")})}catch(x){toast("Kopieren nicht möglich")}return}
-  if(a==="photo"){var p=o.photos.find(function(x){return x.id===+t.dataset.i});var l=$("lb");l.innerHTML='<img src="'+p.src+'" alt="Foto"><div class="acts"><button class="del" id="lbdel">Löschen</button><button class="pri" id="lbx">Schließen</button></div>';$("lbx").onclick=function(){l.close()};$("lbdel").onclick=function(){if(confirm("Foto löschen?")){o.photos=o.photos.filter(function(x){return x!==p});save();l.close();render()}};l.showModal();return}
-  if(a==="addstep")return ask("Neuer Arbeitsschritt",[{n:"t",l:"Was wurde gemacht?",p:"z. B. Schleifen mit 320er Körnung",r:1}],function(v){o.steps.push({id:uid(),text:v.t,done:false,date:new Date().toLocaleDateString("de-AT")});save();render()});
-  if(a==="delstep"){if(confirm("Schritt löschen?")){o.steps=o.steps.filter(function(s){return s.id!==+t.dataset.i});save();render()}return}
+  if(a==="photo"){var p=o.photos.find(function(x){return x.id===+t.dataset.i});var l=$("lb");l.innerHTML='<img src="'+esc(URLS[p.path]||"")+'" alt="Foto"><div class="acts"><button class="del" id="lbdel">Löschen</button><button class="pri" id="lbx">Schließen</button></div>';$("lbx").onclick=function(){l.close()};$("lbdel").onclick=function(){if(confirm("Foto löschen?")){dropPhotos([p.path]);o.photos=o.photos.filter(function(x){return x!==p});save(m);l.close();render()}};l.showModal();return}
+  if(a==="addstep")return ask("Neuer Arbeitsschritt",[{n:"t",l:"Was wurde gemacht?",p:"z. B. Schleifen mit 320er Körnung",r:1}],function(v){o.steps.push({id:uid(),text:v.t,done:false,date:new Date().toLocaleDateString("de-AT")});save(m);render()});
+  if(a==="delstep"){if(confirm("Schritt löschen?")){o.steps=o.steps.filter(function(s){return s.id!==+t.dataset.i});save(m);render()}return}
 });
 document.addEventListener("change",function(e){
-  if(e.target.dataset.a==="chk"){var s=mod().steps.find(function(x){return x.id===+e.target.dataset.i});s.done=e.target.checked;save();render();return}
-  if(e.target.id==="file"){var o=mod(),fs=Array.prototype.slice.call(e.target.files);toast("Foto wird gespeichert …");
-    Promise.all(fs.map(shrink)).then(function(r){r.forEach(function(s){if(s)o.photos.push({id:uid(),src:s})});save();render()});}
+  if(e.target.dataset.a==="chk"){var s=mod().steps.find(function(x){return x.id===+e.target.dataset.i});s.done=e.target.checked;save(man());render();return}
+  if(e.target.id==="file"){
+    var m=man(),o=mod(),fs=Array.prototype.slice.call(e.target.files);toast("Fotos werden hochgeladen …");
+    (async function(){
+      var fail=0;
+      for(var i=0;i<fs.length;i++){
+        var b=await shrink(fs[i]);if(!b){fail++;continue}
+        var path=USER.id+"/"+uid()+".jpg";
+        var r=await sb.storage.from("fotos").upload(path,b,{contentType:"image/jpeg"});
+        if(r.error){fail++;continue}
+        o.photos.push({id:uid(),path:path});
+      }
+      await signPhotos();save(m);render();
+      toast(fail?fail+" Foto(s) fehlgeschlagen":"Gespeichert");
+    })();
+  }
+});
+document.addEventListener("submit",function(e){
+  if(e.target.id!=="lf")return;
+  e.preventDefault();
+  $("lerr").textContent="";
+  sb.auth.signInWithPassword({email:$("em").value.trim(),password:$("pw").value}).then(async function(r){
+    if(r.error){$("lerr").textContent="Anmeldung fehlgeschlagen. Prüfe E-Mail und Passwort.";return}
+    USER=r.data.user;await loadAll();route();
+  });
 });
 document.addEventListener("input",function(e){if(e.target.id==="q"){Q=e.target.value;var p=e.target.selectionStart;render();var n=$("q");n.focus();n.setSelectionRange(p,p)}});
 window.addEventListener("hashchange",route);
-load().then(route);
+(async function(){
+  var r=await sb.auth.getSession();
+  if(r.data&&r.data.session){USER=r.data.session.user;await loadAll()}
+  route();
+})();
 </script>
 </body>
 </html>
